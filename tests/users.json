@@ -1,0 +1,31 @@
+[
+  {
+    "id": 1,
+    "name": "Bob",
+    "items_wishes_id": [
+      3,
+      6
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Henri",
+    "items_wishes_id": [
+      4
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Sarah",
+    "items_wishes_id": [
+      5
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Adele",
+    "items_wishes_id": [
+      2
+    ]
+  }
+]

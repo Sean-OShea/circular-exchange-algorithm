@@ -28,3 +28,7 @@ Resolution: there is no double coincidence of wants, but there is a possibility 
 ## Value of the traded items
 Each item that is made available to the system must have a value in order to make acceptable trades for every user.
 
+
+## Additional ideas
+* Recommendation algorithm for the users based on the available items in order to trigger an exchange
+* Possibility to change the algorithm behaviour via a configuration file
