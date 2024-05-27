@@ -6,8 +6,8 @@ fake = Faker()
 Faker.seed(500)
 
 # open the files where the test data will be dumped
-f_users = open('users.json', 'w')
-f_items = open('items.json', 'w')
+f_users = open('users_small.json', 'w')
+f_items = open('items_small.json', 'w')
 
 users = []
 items = []
@@ -59,11 +59,11 @@ def generate_user(items_number):
         "items_wishes_id": []
     }
 
-for _ in range(100):
-    users.append(generate_user(5))
+for _ in range(1500):
+    users.append(generate_user(15))
 
 for user in users:
-    user['items_wishes_id'] = list(fake.random_elements([item['id'] for item in items], 4))
+    user['items_wishes_id'] = list(fake.random_elements([item['id'] for item in items], 10))
 
 json.dump(users, f_users)
 json.dump(items, f_items)
