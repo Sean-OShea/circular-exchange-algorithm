@@ -4,9 +4,7 @@ import pygraphviz as pgv
 import cProfile
 import pstats
 
-
 with cProfile.Profile() as profile:
-
     f_users = open('tests/users.json')
     f_items = open('tests/items.json')
 
@@ -18,15 +16,15 @@ with cProfile.Profile() as profile:
     # we create a directed graph for each possible item values. the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
     graphs = dict([(50, nx.MultiDiGraph()),
-               (100, nx.MultiDiGraph()),
-               (150, nx.MultiDiGraph()),
-               (200, nx.MultiDiGraph()),
-               (250, nx.MultiDiGraph()),
-               (300, nx.MultiDiGraph()),
-               (350, nx.MultiDiGraph()),
-               (400, nx.MultiDiGraph()),
-               (450, nx.MultiDiGraph()),
-               (500, nx.MultiDiGraph())])
+                   (100, nx.MultiDiGraph()),
+                   (150, nx.MultiDiGraph()),
+                   (200, nx.MultiDiGraph()),
+                   (250, nx.MultiDiGraph()),
+                   (300, nx.MultiDiGraph()),
+                   (350, nx.MultiDiGraph()),
+                   (400, nx.MultiDiGraph()),
+                   (450, nx.MultiDiGraph()),
+                   (500, nx.MultiDiGraph())])
 
     for user in users:
         if len(user['items_wishes_id']) > 0:
@@ -37,20 +35,16 @@ with cProfile.Profile() as profile:
                     graphs.get(value).add_edge(user['id'], item_wished['user_id'], weight=item_wished['value'],
                                                name=item_wished['name'])
 
-
     # prepare the graphs
     G_cycles = pgv.AGraph(directed=True)
     for graph in graphs.values():
-        G = pgv.AGraph(nx.nx_agraph.graphviz_layout(graph, prog="sfdp"), directed=True)
         # Find a cycle in the graph
         try:
             cycles = nx.find_cycle(graph, orientation='original')
-            #for cycle in sorted(cycles):
             G_cycles.add_path(cycles)
 
         except Exception as error:
             print(error)
-
 
     G_cycles.layout(prog="dot")
     G_cycles.draw("file.pdf", format="pdf")
