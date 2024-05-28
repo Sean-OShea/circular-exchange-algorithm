@@ -15,16 +15,7 @@ with cProfile.Profile() as profile:
 
     # we create a directed graph for each possible item values. the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
-    graphs = dict([(50, nx.MultiDiGraph()),
-                   (100, nx.MultiDiGraph()),
-                   (150, nx.MultiDiGraph()),
-                   (200, nx.MultiDiGraph()),
-                   (250, nx.MultiDiGraph()),
-                   (300, nx.MultiDiGraph()),
-                   (350, nx.MultiDiGraph()),
-                   (400, nx.MultiDiGraph()),
-                   (450, nx.MultiDiGraph()),
-                   (500, nx.MultiDiGraph())])
+    graphs = {range: nx.MultiDiGraph() for range in range(50, 500, 50)}
 
     for user in users:
         if len(user['items_wishes_id']) > 0:
