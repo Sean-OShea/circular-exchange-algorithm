@@ -1,13 +1,14 @@
 from faker import Faker
 import json
+import conf.global_settings as env
 
 fake = Faker()
 # use a seed to generate the same data set everytime
 Faker.seed(500)
 
 # open the files where the test data will be dumped
-f_users = open('users_small.json', 'w')
-f_items = open('items_small.json', 'w')
+f_users = open(env.TESTS['users_file_name'], 'w')
+f_items = open(env.TESTS['items_file_name'], 'w')
 
 users = []
 items = []
@@ -45,7 +46,7 @@ def generate_item(user_id):
                                      'mop', 'zipper', 'toothbrush', 'tomato', 'clamp', 'conditioner', 'wagon',
                                      'teddies', 'plate', 'rug', 'shampoo', 'paper', 'sponge', 'drawer', 'needle',
                                      'bowl', 'couch', 'eraser']),
-        "value": fake.random_int(50, 500, 50)
+        "value": fake.random_int(env.ITEMS['min_value'], env.ITEMS['max_value'], env.ITEMS['value_step'])
     }
 
 
@@ -59,11 +60,14 @@ def generate_user(items_number):
         "items_wishes_id": []
     }
 
-for _ in range(1500):
-    users.append(generate_user(15))
+for _ in range(env.TESTS['users_to_generate']):
+    users.append(generate_user(env.TESTS['items_per_user']))
 
 for user in users:
-    user['items_wishes_id'] = list(fake.random_elements([item['id'] for item in items if item['user_id'] != user['id']], 15))
+    user['items_wishes_id'] = list(fake.random_elements([item['id']
+                                                         for item in items
+                                                         if item['user_id'] != user['id']]
+                                                        , env.TESTS['items_wished_per_user']))
 
 json.dump(users, f_users)
 json.dump(items, f_items)

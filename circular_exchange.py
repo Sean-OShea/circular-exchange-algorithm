@@ -3,10 +3,11 @@ import networkx as nx
 import pygraphviz as pgv
 import cProfile
 import pstats
+import conf.global_settings as env
 
 with cProfile.Profile() as profile:
-    f_users = open('tests/users.json')
-    f_items = open('tests/items.json')
+    f_users = open(f"tests/{env.TESTS['users_file_name']}")
+    f_items = open(f"tests/{env.TESTS['items_file_name']}")
 
     users = json.load(f_users)
     items = json.load(f_items)
@@ -15,7 +16,9 @@ with cProfile.Profile() as profile:
 
     # we create a directed graph for each possible item values. the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
-    graphs = {range: nx.MultiDiGraph() for range in range(50, 500, 50)}
+    graphs = {range: nx.MultiDiGraph()
+              for range
+              in range(env.ITEMS['min_value'], env.ITEMS['max_value'], env.ITEMS['value_step'])}
 
     for user in users:
         if len(user['items_wishes_id']) > 0:
