@@ -45,4 +45,4 @@ with cProfile.Profile() as profile:
 
     results = pstats.Stats(profile)
     results.sort_stats('tottime')
-    results.print_stats()
+    results.print_stats(10)
