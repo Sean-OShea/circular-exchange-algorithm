@@ -63,7 +63,7 @@ for _ in range(1500):
     users.append(generate_user(15))
 
 for user in users:
-    user['items_wishes_id'] = list(fake.random_elements([item['id'] for item in items], 10))
+    user['items_wishes_id'] = list(fake.random_elements([item['id'] for item in items if item['user_id'] != user['id']], 15))
 
 json.dump(users, f_users)
 json.dump(items, f_items)
