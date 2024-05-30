@@ -187,6 +187,7 @@ with cProfile.Profile() as profile:
     items = json.load(f_items)
 
     items_dict = {item['id']: item for item in items}
+    users_dict = {user['id']: user for user in users}
 
     # we create a directed graph, the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
@@ -213,7 +214,7 @@ with cProfile.Profile() as profile:
                 cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
                 graph.remove_edges_from(cycle_edges)
                 print(cycle)
-                G_cycles.add_path(cycle)
+                G_cycles.add_cycle([f"{edge[0]} {users_dict[edge[0]]['name']}" for edge in cycle])
                 count_cycles_found += 1
         except Exception as error:
             print(error)
