@@ -6,7 +6,7 @@ import pstats
 import conf.global_settings as env
 
 
-def find_cycle(G, source=None):
+def find_cycle(G, source=None, data_filter=None):
     """Returns a cycle found via depth-first traversal.
 
     The cycle is a list of edges indicating the cyclic path.
@@ -59,7 +59,7 @@ def find_cycle(G, source=None):
         active_nodes = {start_node}
         previous_head = None
 
-        for edge in edge_dfs(G, start_node):
+        for edge in edge_dfs(G, start_node, data_filter):
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
             if head in explored:
@@ -119,7 +119,7 @@ def find_cycle(G, source=None):
     return cycle[i:]
 
 
-def edge_dfs(G, source=None):
+def edge_dfs(G, source=None, data_filter=None):
     """A directed, depth-first-search of edges in `G`, beginning at `source`.
 
     Yield the edges of G in a depth-first-search order continuing until
@@ -173,7 +173,7 @@ def edge_dfs(G, source=None):
                 stack.pop()
             else:
                 edgeid = (frozenset(edge[:2]), edge[2])
-                if edgeid not in visited_edges:
+                if edgeid not in visited_edges and (data_filter is None or (data_filter and edge[3]['weight'] == data_filter["weight"])):
                     visited_edges.add(edgeid)
                     stack.append(edge[1])
                     yield edge
@@ -211,7 +211,7 @@ with cProfile.Profile() as profile:
         # Find a cycle in the graph
         try:
             while True:
-                cycle = find_cycle(graph)
+                cycle = find_cycle(graph, data_filter={"weight": 50})
                 cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
                 graph.remove_edges_from(cycle_edges)
                 print(cycle)
