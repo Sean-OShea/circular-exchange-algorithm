@@ -22,6 +22,12 @@ def find_cycle(G, source=None, data_filter=None):
         is chosen arbitrarily and repeatedly until all edges from each node in
         the graph are searched.
 
+    data_filter : dict, contains all the possible filters. Supported filters are:
+        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge. If they match
+        then the edge will be added in the cycle search process.
+        max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
+        the max_depth value.
+
     Returns
     -------
     edges : directed edges
@@ -135,6 +141,12 @@ def edge_dfs(G, source=None, data_filter=None):
         is chosen arbitrarily and repeatedly until all edges from each node in
         the graph are searched.
 
+    data_filter : dict, contains all the possible filters. Supported filters are:
+        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge. If they match
+        then the edge will be added in the cycle search process.
+        max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
+        the max_depth value.
+
     Yields
     ------
     edge : directed edge
@@ -210,7 +222,7 @@ with cProfile.Profile() as profile:
         # Find a cycle in the graph
         try:
             while True:
-                cycle = find_cycle(graph, data_filter={"weight": item_value})
+                cycle = find_cycle(graph, data_filter={"max_depth": env.DFS_CYCLE['max_depth'], "weight": item_value})
                 cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
                 graph.remove_edges_from(cycle_edges)
                 print(cycle)

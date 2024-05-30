@@ -2,6 +2,10 @@
 Default settings example. Copy this file as 'global_settings.py' in this repository.
 """
 
+DFS_CYCLE = {
+    'max_depth': 5
+}
+
 ITEMS = {
     'min_value': 50,
     'max_value': 500,
