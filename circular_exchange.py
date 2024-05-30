@@ -217,7 +217,7 @@ with cProfile.Profile() as profile:
     G_cycles = pgv.AGraph(directed=True)
     total_cycles_found = 0
 
-    for item_value in range(env.ITEMS['min_value'], env.ITEMS['max_value'], env.ITEMS['value_step']):
+    for item_value in range(env.ITEMS['min_value'], env.ITEMS['max_value'] + env.ITEMS['value_step'], env.ITEMS['value_step']):
         count_cycles_found = 0
         # Find a cycle in the graph
         try:
