@@ -188,30 +188,28 @@ with cProfile.Profile() as profile:
 
     items_dict = {item['id']: item for item in items}
 
-    # we create a directed graph for each possible item values. the nodes will be the users and the edges
+    # we create a directed graph, the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
-    graphs = {range: nx.MultiDiGraph()
-              for range
-              in range(env.ITEMS['min_value'], env.ITEMS['max_value'], env.ITEMS['value_step'])}
+    graph = nx.MultiDiGraph()
 
     for user in users:
         if len(user['items_wishes_id']) > 0:
             for item_wished_id in user['items_wishes_id']:
                 item_wished = items_dict[item_wished_id]
                 value = item_wished['value']
-                if value in graphs:
-                    graphs.get(value).add_edge(user['id'], item_wished['user_id'], weight=item_wished['value'],
+                graph.add_edge(user['id'], item_wished['user_id'], weight=item_wished['value'],
                                                name=item_wished['name'], key=item_wished['id'])
 
     # prepare the graphs
     G_cycles = pgv.AGraph(directed=True)
     total_cycles_found = 0
-    for graph in graphs.values():
+
+    for item_value in range(env.ITEMS['min_value'], env.ITEMS['max_value'], env.ITEMS['value_step']):
         count_cycles_found = 0
         # Find a cycle in the graph
         try:
             while True:
-                cycle = find_cycle(graph, data_filter={"weight": 50})
+                cycle = find_cycle(graph, data_filter={"weight": item_value})
                 cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
                 graph.remove_edges_from(cycle_edges)
                 print(cycle)
