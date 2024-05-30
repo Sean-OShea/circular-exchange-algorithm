@@ -40,11 +40,16 @@ with cProfile.Profile() as profile:
         try:
             while True:
                 cycle = find_cycle(graph, data_filter={"max_depth": env.DFS_CYCLE['max_depth'], "weight": item_value})
-                cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
-                graph.remove_edges_from(cycle_edges)
-                print(cycle)
-                G_cycles.add_cycle([f"{edge[0]} {users_dict[edge[0]]['name']}" for edge in cycle])
                 count_cycles_found += 1
+                graph.remove_edges_from(cycle)
+                cycle = cycle
+                # link the last node to the first
+                fromv = cycle[-1]
+                while len(cycle) > 0:
+                    tov = cycle.pop(0)
+                    G_cycles.add_edge(users_dict[fromv[0]]['name'], users_dict[tov[0]]['name'], key=fromv[2], label=f" {fromv[3]['name']} ({fromv[3]['weight']})")
+                    fromv = tov
+
         except Exception as error:
             print(error)
 
@@ -53,7 +58,7 @@ with cProfile.Profile() as profile:
 
     print(f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}")
     G_cycles.layout(prog='dot')
-    G_cycles.draw("file.pdf", format="pdf")
+    G_cycles.draw("file2.pdf", format="pdf")
 
     f_users.close()
     f_items.close()
