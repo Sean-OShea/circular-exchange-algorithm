@@ -3,7 +3,7 @@ Default settings example. Copy this file as 'global_settings.py' in this reposit
 """
 
 DFS_CYCLE = {
-    'max_depth': 5
+    'max_depth': 15
 }
 
 ITEMS = {
