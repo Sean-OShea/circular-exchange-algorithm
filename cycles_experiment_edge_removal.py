@@ -71,6 +71,10 @@ def find_cycle(G, source=None, data_filter=None):
         for edge in edge_dfs(G, start_node, data_filter):
             # Stop the cycle search if it's about to exceed the max_depth filter
             if len(active_nodes) == data_filter['max_depth']:
+                # Remove the concerned edge of the starting node as we found no cycle from it
+                edges_no_cycle = [(edge[0], edge[1], edge[2]) for edge in G.edges(active_nodes, data=True, keys=True)
+                         if (data_filter is None or (data_filter and edge[3]['weight'] == data_filter["weight"]))]
+                G.remove_edges_from(edges_no_cycle)
                 break
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
