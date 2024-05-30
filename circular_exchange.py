@@ -4,7 +4,7 @@ import pygraphviz as pgv
 import cProfile
 import pstats
 import conf.global_settings as env
-from cycles import *
+from cycles_experiment_edge_removal import *
 
 
 with cProfile.Profile() as profile:
