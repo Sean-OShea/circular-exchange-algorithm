@@ -32,3 +32,11 @@ Each item that is made available to the system must have a value in order to mak
 ## Additional ideas
 * Recommendation algorithm for the users based on the available items in order to trigger an exchange
 * Possibility to change the algorithm behaviour via a configuration file
+
+# Technical informations
+
+## Code quality
+To ensure the consistency and quality of the code, here are the tools that are being used
+- [flake8 to validate the python code](https://flake8.pycqa.org/en/latest/)
+- [black for autoformatting the python code](https://github.com/psf/black)
+- [isort to handle imports ordering in python](https://github.com/PyCQA/isort)

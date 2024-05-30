@@ -4,10 +4,8 @@ Cycle finding algorithms
 ========================
 """
 
-__all__ = [
-    "find_cycle",
-    "edge_dfs"
-]
+__all__ = ["find_cycle", "edge_dfs"]
+
 
 def find_cycle(G, source=None, data_filter=None):
     """Returns a cycle found via depth-first traversal.
@@ -70,10 +68,17 @@ def find_cycle(G, source=None, data_filter=None):
 
         for edge in edge_dfs(G, start_node, data_filter):
             # Stop the cycle search if it's about to exceed the max_depth filter
-            if len(active_nodes) == data_filter['max_depth']:
+            if len(active_nodes) == data_filter["max_depth"]:
                 # Remove the concerned edge of the starting node as we found no cycle from it
-                edges_no_cycle = [(edge[0], edge[1], edge[2]) for edge in G.edges(active_nodes, data=True, keys=True)
-                         if (data_filter is None or (data_filter and edge[3]['weight'] == data_filter["weight"]))]
+                # TODO: make it possible to remove only the start_node edges, or all the active_nodes in the cycle failed attempt
+                edges_no_cycle = [
+                    (edge[0], edge[1], edge[2])
+                    for edge in G.edges(active_nodes, data=True, keys=True)
+                    if (
+                        data_filter is None
+                        or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                    )
+                ]
                 G.remove_edges_from(edges_no_cycle)
                 break
             # Determine if this edge is a continuation of the active path.
@@ -195,7 +200,10 @@ def edge_dfs(G, source=None, data_filter=None):
                 stack.pop()
             else:
                 edgeid = (frozenset(edge[:2]), edge[2])
-                if edgeid not in visited_edges and (data_filter is None or (data_filter and edge[3]['weight'] == data_filter["weight"])):
+                if edgeid not in visited_edges and (
+                    data_filter is None
+                    or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                ):
                     visited_edges.add(edgeid)
                     stack.append(edge[1])
                     yield edge

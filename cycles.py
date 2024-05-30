@@ -4,10 +4,8 @@ Cycle finding algorithms
 ========================
 """
 
-__all__ = [
-    "find_cycle",
-    "edge_dfs"
-]
+__all__ = ["find_cycle", "edge_dfs"]
+
 
 def find_cycle(G, source=None, data_filter=None):
     """Returns a cycle found via depth-first traversal.
@@ -70,7 +68,7 @@ def find_cycle(G, source=None, data_filter=None):
 
         for edge in edge_dfs(G, start_node, data_filter):
             # Stop the cycle search if it's about to exceed the max_depth filter
-            if len(active_nodes) == data_filter['max_depth']:
+            if len(active_nodes) == data_filter["max_depth"]:
                 break
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
@@ -191,7 +189,10 @@ def edge_dfs(G, source=None, data_filter=None):
                 stack.pop()
             else:
                 edgeid = (frozenset(edge[:2]), edge[2])
-                if edgeid not in visited_edges and (data_filter is None or (data_filter and edge[3]['weight'] == data_filter["weight"])):
+                if edgeid not in visited_edges and (
+                    data_filter is None
+                    or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                ):
                     visited_edges.add(edgeid)
                     stack.append(edge[1])
                     yield edge
