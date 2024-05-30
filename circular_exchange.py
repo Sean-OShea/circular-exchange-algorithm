@@ -5,7 +5,7 @@ import cProfile
 import pstats
 import conf.global_settings as env
 
-# Uses an implementation of a DFS algorithm for a multi-edge directed graph
+
 def find_cycle(G, source=None):
     """Returns a cycle found via depth-first traversal.
 
@@ -39,28 +39,6 @@ def find_cycle(G, source=None):
     ------
     NetworkXNoCycle
         If no cycle was found.
-
-    Examples
-    --------
-    In this example, we construct a DAG and find, in the first call, that there
-    are no directed cycles, and so an exception is raised. In the second call,
-    we ignore edge orientations and find that there is an undirected cycle.
-    Note that the second call finds a directed cycle while effectively
-    traversing an undirected graph, and so, we found an "undirected cycle".
-    This means that this DAG structure does not form a directed tree (which
-    is also known as a polytree).
-
-    >>> G = nx.DiGraph([(0, 1), (0, 2), (1, 2)])
-    >>> nx.find_cycle(G, orientation="original")
-    Traceback (most recent call last):
-        ...
-    networkx.exception.NetworkXNoCycle: No cycle found.
-    >>> list(nx.find_cycle(G, orientation="ignore"))
-    [(0, 1, 'forward'), (1, 2, 'forward'), (0, 2, 'reverse')]
-
-    See Also
-    --------
-    simple_cycles
     """
 
     def tailhead(edge):
@@ -81,7 +59,7 @@ def find_cycle(G, source=None):
         active_nodes = {start_node}
         previous_head = None
 
-        for edge in nx.edge_dfs(G, start_node, orientation="original"):
+        for edge in edge_dfs(G, start_node):
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
             if head in explored:
@@ -140,6 +118,67 @@ def find_cycle(G, source=None):
 
     return cycle[i:]
 
+
+def edge_dfs(G, source=None):
+    """A directed, depth-first-search of edges in `G`, beginning at `source`.
+
+    Yield the edges of G in a depth-first-search order continuing until
+    all edges are generated.
+
+    Parameters
+    ----------
+    G : graph
+        A directed multigraph.
+
+    source : node, list of nodes
+        The node from which the traversal begins. If None, then a source
+        is chosen arbitrarily and repeatedly until all edges from each node in
+        the graph are searched.
+
+    Yields
+    ------
+    edge : directed edge
+        A directed edge indicating the path taken by the depth-first traversal.
+        `edge` is of the form `(u, v, key, data)`, where `key` is
+        the key of the edge. `u` and `v`
+        are always in the order of the actual directed edge.
+    """
+    nodes = list(G.nbunch_iter(source))
+    if not nodes:
+        return
+
+    kwds = {"data": True}
+    kwds["keys"] = True
+
+    def edges_from(node):
+        return iter(G.edges(node, **kwds))
+
+    visited_edges = set()
+    visited_nodes = set()
+    edges = {}
+
+    # start DFS
+    for start_node in nodes:
+        stack = [start_node]
+        while stack:
+            current_node = stack[-1]
+            if current_node not in visited_nodes:
+                edges[current_node] = edges_from(current_node)
+                visited_nodes.add(current_node)
+
+            try:
+                edge = next(edges[current_node])
+            except StopIteration:
+                # No more edges from the current node.
+                stack.pop()
+            else:
+                edgeid = (frozenset(edge[:2]), edge[2])
+                if edgeid not in visited_edges:
+                    visited_edges.add(edgeid)
+                    stack.append(edge[1])
+                    yield edge
+
+
 with cProfile.Profile() as profile:
     f_users = open(f"tests/{env.TESTS['users_file_name']}")
     f_items = open(f"tests/{env.TESTS['items_file_name']}")
@@ -173,7 +212,7 @@ with cProfile.Profile() as profile:
         try:
             while True:
                 cycle = find_cycle(graph)
-                cycle_edges = [(edge[0],edge[1],edge[2]) for edge in cycle]
+                cycle_edges = [(edge[0], edge[1], edge[2]) for edge in cycle]
                 graph.remove_edges_from(cycle_edges)
                 print(cycle)
                 G_cycles.add_path(cycle)
