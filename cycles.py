@@ -24,13 +24,22 @@ def find_cycle(G, source=None, data_filter=None, **options):
         the graph are searched.
 
     data_filter : dict, contains all the possible filters. Supported filters are:
-        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge.
+        weight: [int], will compare the weight value passed in the filter with the weight attribute of the edge.
         If they match then the edge will be added in the cycle search process.
         max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
         the max_depth value.
 
     options : dict, allows changing the way the algorithm performs its cycle search. Possible key/values are:
-        edge_removal: None, current_node, failed_cycle_nodes
+        edge_removal: None, starting_node, failed_cycle_nodes
+            This option makes it possible to remove one of multiple nodes edges when no cycle have been found for them.
+            The starting_node value will only remove the edge of the starting node of the cycle. The failed_cycle_nodes
+            will remove all the edges between the nodes of the cycle attempt.
+        multi_weight: parallel, combined
+            When searching for a cycle, edges are compared based on the value of their weight key.
+            The parallel option will try to find all the possible paths for each value contained in
+            data_filter["weight"]. The combined option will do the same as the parallel option
+            but with the addition of trying to compose additional values based the data_filter["weight"] values and
+            the values found in each explored edges.
 
     Returns
     -------
@@ -69,6 +78,9 @@ def find_cycle(G, source=None, data_filter=None, **options):
         active_nodes = {start_node}
         previous_head = None
 
+        # TODO: get the weigh of all the edges of start_node that are in common with the values in
+        #  data_filter["weight"] ==> like an union on a set()
+
         for edge in edge_dfs(G, start_node, data_filter):
             # Stop the cycle search if it's about to exceed the max_depth filter
             if len(active_nodes) == data_filter["max_depth"]:
@@ -86,7 +98,7 @@ def find_cycle(G, source=None, data_filter=None, **options):
                     for edge in G.edges(nodes_concerned, data=True, keys=True)
                     if (
                         data_filter is None
-                        or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                        or (data_filter and edge[3]["weight"] in data_filter["weight"])
                     )
                 ]
                 G.remove_edges_from(edges_no_cycle)
@@ -150,7 +162,7 @@ def find_cycle(G, source=None, data_filter=None, **options):
     return cycle[i:]
 
 
-def edge_dfs(G, source=None, data_filter=None):
+def edge_dfs(G, source=None, data_filter=None, multi_weight="parallel"):
     """A directed, depth-first-search of edges in `G`, beginning at `source`.
 
     Yield the edges of G in a depth-first-search order continuing until
@@ -171,6 +183,13 @@ def edge_dfs(G, source=None, data_filter=None):
         If they match then the edge will be added in the cycle search process.
         max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
         the max_depth value.
+
+    multi_weight: parallel, combined
+        When searching for a cycle, edges are compared based on the value of their weight key.
+        The parallel option will try to find all the possible paths for each value contained in
+        data_filter["weight"]. The combined option will do the same as the parallel option
+        but with the addition of trying to compose additional values based the data_filter["weight"] values and
+        the values found in each explored edges.
 
     Yields
     ------
@@ -212,7 +231,7 @@ def edge_dfs(G, source=None, data_filter=None):
                 edgeid = (frozenset(edge[:2]), edge[2])
                 if edgeid not in visited_edges and (
                     data_filter is None
-                    or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                    or (data_filter and edge[3]["weight"] in data_filter["weight"])
                 ):
                     visited_edges.add(edgeid)
                     stack.append(edge[1])

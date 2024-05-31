@@ -40,49 +40,48 @@ with cProfile.Profile() as profile:
     total_cycles_found = 0
 
     print(f"Cycle search start, graph size: {graph.size()}")
-    for item_value in range(
+
+    item_values = range(
         env.ITEMS["min_value"],
         env.ITEMS["max_value"] + env.ITEMS["value_step"],
         env.ITEMS["value_step"],
-    ):
-        count_cycles_found = 0
-        # Find a cycle in the graph
-        try:
-            while True:
-                cycle = find_cycle(
-                    graph,
-                    data_filter={
-                        "max_depth": env.DFS_CYCLE["max_depth"],
-                        "weight": item_value,
-                    },
-                    edge_removal="current_node",
+    )
+    count_cycles_found = 0
+    # Find all cycles in the graph
+    try:
+        while True:
+            cycle = find_cycle(
+                graph,
+                data_filter={
+                    "max_depth": env.DFS_CYCLE["max_depth"],
+                    "weight": item_values,
+                },
+                edge_removal="starting_node",
+                multi_weight=None,
+            )
+            count_cycles_found += 1
+            graph.remove_edges_from(cycle)
+            cycle = cycle
+            # link the last node to the first
+            fromv = cycle[-1]
+            while len(cycle) > 0:
+                tov = cycle.pop(0)
+                G_cycles.add_edge(
+                    users_dict[fromv[0]]["name"],
+                    users_dict[tov[0]]["name"],
+                    key=fromv[2],
+                    label=f" {fromv[3]['name']} ({fromv[3]['weight']})",
                 )
-                count_cycles_found += 1
-                graph.remove_edges_from(cycle)
-                cycle = cycle
-                # link the last node to the first
-                fromv = cycle[-1]
-                while len(cycle) > 0:
-                    tov = cycle.pop(0)
-                    G_cycles.add_edge(
-                        users_dict[fromv[0]]["name"],
-                        users_dict[tov[0]]["name"],
-                        key=fromv[2],
-                        label=f" {fromv[3]['name']} ({fromv[3]['weight']})",
-                    )
-                    fromv = tov
+                fromv = tov
 
-        except Exception as error:
-            print(error)
-
-        total_cycles_found += count_cycles_found
-        print(
-            f"Cycle search for item value: {item_value}, Cycles found: {count_cycles_found}"
-        )
+    except Exception as error:
+        print(error)
 
     print(
-        f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}"
+        f"Cycle search end, graph size: {graph.size()}. Item values searched: {item_values}, "
+        f"Cycles found: {count_cycles_found}"
     )
+
     G_cycles.layout(prog="dot")
     G_cycles.draw("file_all_values.pdf", format="pdf")
 
