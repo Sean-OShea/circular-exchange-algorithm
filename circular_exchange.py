@@ -6,7 +6,7 @@ import networkx as nx
 import pygraphviz as pgvs
 
 import conf.global_settings as env
-from cycles_experiment_edge_removal import find_cycle
+from cycles import find_cycle
 
 with cProfile.Profile() as profile:
     f_users = open(f"tests/{env.TESTS['users_file_name']}")
@@ -55,6 +55,7 @@ with cProfile.Profile() as profile:
                         "max_depth": env.DFS_CYCLE["max_depth"],
                         "weight": item_value,
                     },
+                    edge_removal="current_node",
                 )
                 count_cycles_found += 1
                 graph.remove_edges_from(cycle)
@@ -83,7 +84,7 @@ with cProfile.Profile() as profile:
         f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}"
     )
     G_cycles.layout(prog="dot")
-    G_cycles.draw("file2.pdf", format="pdf")
+    G_cycles.draw("file_all_values.pdf", format="pdf")
 
     f_users.close()
     f_items.close()

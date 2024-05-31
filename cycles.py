@@ -7,7 +7,7 @@ Cycle finding algorithms
 __all__ = ["find_cycle", "edge_dfs"]
 
 
-def find_cycle(G, source=None, data_filter=None):
+def find_cycle(G, source=None, data_filter=None, **options):
     """Returns a cycle found via depth-first traversal.
 
     The cycle is a list of edges indicating the cyclic path.
@@ -24,10 +24,13 @@ def find_cycle(G, source=None, data_filter=None):
         the graph are searched.
 
     data_filter : dict, contains all the possible filters. Supported filters are:
-        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge. If they match
-        then the edge will be added in the cycle search process.
+        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge.
+        If they match then the edge will be added in the cycle search process.
         max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
         the max_depth value.
+
+    options : dict, allows changing the way the algorithm performs its cycle search. Possible key/values are:
+        edge_removal: None, current_node, failed_cycle_nodes
 
     Returns
     -------
@@ -69,6 +72,24 @@ def find_cycle(G, source=None, data_filter=None):
         for edge in edge_dfs(G, start_node, data_filter):
             # Stop the cycle search if it's about to exceed the max_depth filter
             if len(active_nodes) == data_filter["max_depth"]:
+                if options["edge_removal"] is None:
+                    break
+                if options["edge_removal"] == "failed_cycle_nodes":
+                    # Remove the concerned edge of the starting node as we found no cycle from it
+                    nodes_concerned = active_nodes
+                if options["edge_removal"] == "current_node":
+                    # Remove the concerned edge of the starting node as we found no cycle from it
+                    nodes_concerned = start_node
+
+                edges_no_cycle = [
+                    (edge[0], edge[1], edge[2])
+                    for edge in G.edges(nodes_concerned, data=True, keys=True)
+                    if (
+                        data_filter is None
+                        or (data_filter and edge[3]["weight"] == data_filter["weight"])
+                    )
+                ]
+                G.remove_edges_from(edges_no_cycle)
                 break
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
@@ -146,8 +167,8 @@ def edge_dfs(G, source=None, data_filter=None):
         the graph are searched.
 
     data_filter : dict, contains all the possible filters. Supported filters are:
-        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge. If they match
-        then the edge will be added in the cycle search process.
+        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge.
+        If they match then the edge will be added in the cycle search process.
         max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
         the max_depth value.
 
