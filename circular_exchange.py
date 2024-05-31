@@ -3,10 +3,10 @@ import json
 import pstats
 
 import networkx as nx
-import pygraphviz as pgv
+import pygraphviz as pgvs
 
 import conf.global_settings as env
-from cycles_experiment_edge_removal import *
+from cycles_experiment_edge_removal import find_cycle
 
 with cProfile.Profile() as profile:
     f_users = open(f"tests/{env.TESTS['users_file_name']}")
@@ -36,7 +36,7 @@ with cProfile.Profile() as profile:
                 )
 
     # prepare the graphs
-    G_cycles = pgv.AGraph(directed=True)
+    G_cycles = pgvs.AGraph(directed=True)
     total_cycles_found = 0
 
     print(f"Cycle search start, graph size: {graph.size()}")
