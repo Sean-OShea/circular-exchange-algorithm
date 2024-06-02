@@ -4,10 +4,14 @@ Cycle finding algorithms
 ========================
 """
 
+import networkx as nx
+
+import conf.global_settings as env
+
 __all__ = ["find_cycle", "edge_dfs"]
 
 
-def find_cycle(G, source=None, data_filter=None, **options):
+def find_cycle(G: nx.MultiDiGraph, **options):
     """Returns a cycle found via depth-first traversal.
 
     The cycle is a list of edges indicating the cyclic path.
@@ -17,17 +21,6 @@ def find_cycle(G, source=None, data_filter=None, **options):
     ----------
     G : graph
         A directed/undirected graph/multigraph.
-
-    source : node, list of nodes
-        The node from which the traversal begins. If None, then a source
-        is chosen arbitrarily and repeatedly until all edges from each node in
-        the graph are searched.
-
-    data_filter : dict, contains all the possible filters. Supported filters are:
-        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge.
-        If they match then the edge will be added in the cycle search process.
-        max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
-        the max_depth value.
 
     options : dict, allows changing the way the algorithm performs its cycle search. Possible key/values are:
         edge_removal: None, current_node, failed_cycle_nodes
@@ -57,7 +50,7 @@ def find_cycle(G, source=None, data_filter=None, **options):
     explored = set()
     cycle = []
     final_node = None
-    for start_node in G.nbunch_iter(source):
+    for start_node in G.nbunch_iter():
         if start_node in explored:
             # No loop is possible.
             continue
@@ -69,9 +62,9 @@ def find_cycle(G, source=None, data_filter=None, **options):
         active_nodes = {start_node}
         previous_head = None
 
-        for edge in edge_dfs(G, start_node, data_filter):
+        for edge in edge_dfs(G, start_node):
             # Stop the cycle search if it's about to exceed the max_depth filter
-            if len(active_nodes) == data_filter["max_depth"]:
+            if len(active_nodes) == env.DFS_CYCLE["max_depth"]:
                 if options["edge_removal"] is None:
                     break
                 if options["edge_removal"] == "failed_cycle_nodes":
@@ -84,10 +77,6 @@ def find_cycle(G, source=None, data_filter=None, **options):
                 edges_no_cycle = [
                     (edge[0], edge[1], edge[2])
                     for edge in G.edges(nodes_concerned, data=True, keys=True)
-                    if (
-                        data_filter is None
-                        or (data_filter and edge[3]["weight"] == data_filter["weight"])
-                    )
                 ]
                 G.remove_edges_from(edges_no_cycle)
                 break
@@ -150,7 +139,7 @@ def find_cycle(G, source=None, data_filter=None, **options):
     return cycle[i:]
 
 
-def edge_dfs(G, source=None, data_filter=None):
+def edge_dfs(G, source):
     """A directed, depth-first-search of edges in `G`, beginning at `source`.
 
     Yield the edges of G in a depth-first-search order continuing until
@@ -161,16 +150,7 @@ def edge_dfs(G, source=None, data_filter=None):
     G : graph
         A directed multigraph.
 
-    source : node, list of nodes
-        The node from which the traversal begins. If None, then a source
-        is chosen arbitrarily and repeatedly until all edges from each node in
-        the graph are searched.
-
-    data_filter : dict, contains all the possible filters. Supported filters are:
-        weight: int, will compare the weight value passed in the filter with the weight attribute of the edge.
-        If they match then the edge will be added in the cycle search process.
-        max_depth: int, will make sure that we only return cycles that do not exceed a number of nodes corresponding to
-        the max_depth value.
+    source : node, the node from which the traversal begins.
 
     Yields
     ------
@@ -210,10 +190,7 @@ def edge_dfs(G, source=None, data_filter=None):
                 stack.pop()
             else:
                 edgeid = (frozenset(edge[:2]), edge[2])
-                if edgeid not in visited_edges and (
-                    data_filter is None
-                    or (data_filter and edge[3]["weight"] == data_filter["weight"])
-                ):
+                if edgeid not in visited_edges and edge[3]["weight"] == 50:
                     visited_edges.add(edgeid)
                     stack.append(edge[1])
                     yield edge
