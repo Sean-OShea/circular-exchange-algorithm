@@ -44,10 +44,7 @@ with cProfile.Profile() as profile:
     # Find a cycle in the graph
     try:
         while True:
-            cycle = find_cycle(
-                graph,
-                edge_removal=None,
-            )
+            cycle = find_cycle(graph)
             count_cycles_found += 1
             graph.remove_edges_from(cycle)
             cycle = cycle

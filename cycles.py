@@ -11,7 +11,7 @@ import conf.global_settings as env
 __all__ = ["find_cycle", "edge_dfs"]
 
 
-def find_cycle(G: nx.MultiDiGraph, **options):
+def find_cycle(G: nx.MultiDiGraph):
     """Returns a cycle found via depth-first traversal.
 
     The cycle is a list of edges indicating the cyclic path.
@@ -21,9 +21,6 @@ def find_cycle(G: nx.MultiDiGraph, **options):
     ----------
     G : graph
         A directed/undirected graph/multigraph.
-
-    options : dict, allows changing the way the algorithm performs its cycle search. Possible key/values are:
-        edge_removal: None, current_node, failed_cycle_nodes
 
     Returns
     -------
@@ -65,14 +62,15 @@ def find_cycle(G: nx.MultiDiGraph, **options):
         for edge in edge_dfs(G, start_node):
             # Stop the cycle search if it's about to exceed the max_depth filter
             if len(active_nodes) == env.DFS_CYCLE["max_depth"]:
-                if options["edge_removal"] is None:
-                    break
-                if options["edge_removal"] == "failed_cycle_nodes":
-                    # Remove the concerned edge of the starting node as we found no cycle from it
-                    nodes_concerned = active_nodes
-                if options["edge_removal"] == "current_node":
-                    # Remove the concerned edge of the starting node as we found no cycle from it
-                    nodes_concerned = start_node
+                match env.DFS_CYCLE["edge_removal"]:
+                    case None:
+                        break
+                    case "failed_cycle_nodes":
+                        # Remove the concerned edge of the starting node as we found no cycle from it
+                        nodes_concerned = active_nodes
+                    case "current_node":
+                        # Remove the concerned edge of the starting node as we found no cycle from it
+                        nodes_concerned = start_node
 
                 edges_no_cycle = [
                     (edge[0], edge[1], edge[2])
