@@ -47,7 +47,6 @@ with cProfile.Profile() as profile:
             cycle = find_cycle(graph)
             count_cycles_found += 1
             graph.remove_edges_from(cycle)
-            cycle = cycle
             # link the last node to the first
             fromv = cycle[-1]
             while len(cycle) > 0:
@@ -70,7 +69,7 @@ with cProfile.Profile() as profile:
         f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}"
     )
     G_cycles.layout(prog="dot")
-    G_cycles.draw(env.TESTS["items_file_name"], format="pdf")
+    G_cycles.draw(env.TESTS["cycles_file_name"], format="pdf")
 
     f_users.close()
     f_items.close()
