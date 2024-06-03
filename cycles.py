@@ -44,11 +44,11 @@ def find_cycle(G: nx.MultiDiGraph):
     def tailhead(edge):
         return edge[:2]
 
-    explored = set()
     cycle = []
     final_node = None
     for start_node in G.nbunch_iter():
-        if start_node in explored:
+        explored = {start_node: set()}
+        if start_node in explored[start_node]:
             # No loop is possible.
             continue
 
@@ -75,7 +75,7 @@ def find_cycle(G: nx.MultiDiGraph):
                 break
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
-            if head in explored:
+            if head in explored[start_node]:
                 # Then we've already explored it. No loop is possible.
                 continue
             if previous_head is not None and tail != previous_head:
@@ -115,7 +115,7 @@ def find_cycle(G: nx.MultiDiGraph):
         if cycle:
             break
         else:
-            explored.update(seen)
+            explored[start_node].update(seen)
 
     else:
         assert len(cycle) == 0
