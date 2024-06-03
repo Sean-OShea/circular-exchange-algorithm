@@ -67,16 +67,11 @@ def find_cycle(G: nx.MultiDiGraph):
                         break
                     case "failed_cycle_nodes":
                         # Remove the concerned edge of the starting node as we found no cycle from it
-                        nodes_concerned = active_nodes
+                        for edge in edges:
+                            G.remove_edge(*edge[:3])
                     case "current_node":
                         # Remove the concerned edge of the starting node as we found no cycle from it
-                        nodes_concerned = start_node
-
-                edges_no_cycle = [
-                    (edge[0], edge[1], edge[2])
-                    for edge in G.edges(nodes_concerned, data=True, keys=True)
-                ]
-                G.remove_edges_from(edges_no_cycle)
+                        G.remove_edge(*edges[0][:3])
                 break
             # Determine if this edge is a continuation of the active path.
             tail, head = tailhead(edge)
