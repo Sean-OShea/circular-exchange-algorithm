@@ -35,7 +35,7 @@ with cProfile.Profile() as profile:
                     key=item_wished["id"],
                 )
 
-    # prepare the graphs
+    # prepare the graph that will contain all the cycles
     G_cycles = pgvs.AGraph(directed=True)
     total_cycles_found = 0
 
@@ -70,7 +70,7 @@ with cProfile.Profile() as profile:
         f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}"
     )
     G_cycles.layout(prog="dot")
-    G_cycles.draw("file_all_values.pdf", format="pdf")
+    G_cycles.draw(env.TESTS["items_file_name"], format="pdf")
 
     f_users.close()
     f_items.close()
