@@ -4,14 +4,14 @@ Cycle finding algorithms
 ========================
 """
 
-import networkx as nx
+import logging
 
-import conf.global_settings as env
+import networkx as nx
 
 __all__ = ["find_cycle", "edge_dfs"]
 
 
-def find_cycle(G: nx.MultiDiGraph):
+def find_cycle(graph: nx.MultiDiGraph):
     """Returns a cycle found via depth-first traversal.
 
     The cycle is a list of edges indicating the cyclic path.
@@ -19,7 +19,7 @@ def find_cycle(G: nx.MultiDiGraph):
 
     Parameters
     ----------
-    G : graph
+    graph : graph
         A directed/undirected graph/multigraph.
 
     Returns
@@ -44,40 +44,94 @@ def find_cycle(G: nx.MultiDiGraph):
     def tailhead(edge):
         return edge[:2]
 
-    cycle = []
-    final_node = None
-    for start_node in G.nbunch_iter():
-        explored = {start_node: set()}
-        if start_node in explored[start_node]:
-            # No loop is possible.
-            continue
+    logging.debug("find_cycle Start")
 
-        edges = []
+    explored: dict[str, set] = {}
+    cycles: dict[str, list] = {}
+    final_node = None
+
+    # iterate through all the nodes of the graph in order to find every possible cycles
+    for start_node in graph.nbunch_iter():
+        # if start_node in explored:
+        # No loop is possible.
+        # continue
+
+        edges: dict[str, list] = {}
         # All nodes seen in this iteration of edge_dfs
         seen = {start_node}
         # Nodes in active path.
         active_nodes = {start_node}
         previous_head = None
 
-        for edge in edge_dfs(G, start_node):
-            # Stop the cycle search if it's about to exceed the max_depth filter
+        start_node_edges = graph.edges(start_node, data=True)
+        # node exploration has to be made for each possible weight values as there may be multiple cycles going through
+        # each node.
+        weights = {edge[2]["weight"] for edge in list(start_node_edges)}
+
+        log_cycle_variables(
+            start_node=start_node,
+            cycles=cycles,
+            explored=explored,
+            final_node=final_node,
+            weights=weights,
+            edges=edges,
+            seen=seen,
+            active_nodes=active_nodes,
+            previous_head=previous_head,
+        )
+
+        # check if there are new weights that are being encountered. Update the concerned variables if needed
+        explored.update({weight: set() for weight in weights.difference(explored)})
+        cycles.update({weight: [] for weight in weights.difference(cycles)})
+        edges.update({weight: [] for weight in weights.difference(edges)})
+        """
+        popped_edge.update(
+            {weight: [] for weight in weights.difference(popped_edge.keys())}
+        )
+        popped_head.update(
+            {weight: [] for weight in weights.difference(popped_head.keys())}
+        )
+        last_head.update(
+            {weight: [] for weight in weights.difference(last_head.keys())}
+        )
+        # All nodes seen in this iteration of edge_dfs
+        seen = {weight: {start_node} for weight in weights}
+        # Nodes in active path.
+        active_nodes = {weight: {start_node} for weight in weights}
+        previous_head = {weight: None for weight in weights}
+        head = {weight: None for weight in weights}
+        tail = {weight: None for weight in weights}
+
+        """
+        final_node = {weight: None for weight in weights}
+        # going from the current start_node, get every accessible edges in the graph
+        for edge in edge_dfs(graph, start_node):
+            logging.debug(f"Edge found: {edge}")
+
+            weight = edge[3]["weight"]
+            # Determine if this edge is a continuation of the active path.
+            tail, head = tailhead(edge)
+            if explored.get(weight) and head in list(explored.get(weight)):
+                # Then we've already explored it. No loop is possible.
+                continue
+            # Stop the cycle search if it's about to exceed the max_depth filter or if the edge has its weight outside
+            # the range of the previous node
+            # if weight not in weights:
+            #      continue
+            """
             if len(active_nodes) == env.DFS_CYCLE["max_depth"]:
                 match env.DFS_CYCLE["edge_removal"]:
                     case None:
                         break
                     case "failed_cycle_nodes":
                         # Remove the concerned edge of the starting node as we found no cycle from it
-                        for edge in edges:
-                            G.remove_edge(*edge[:3])
+                        for edge in edges[weight]:
+                            graph.remove_edge(*edge[:3])
                     case "current_node":
                         # Remove the concerned edge of the starting node as we found no cycle from it
-                        G.remove_edge(*edges[0][:3])
+                        graph.remove_edge(*edges[weight][0][:3])
                 break
-            # Determine if this edge is a continuation of the active path.
-            tail, head = tailhead(edge)
-            if head in explored[start_node]:
-                # Then we've already explored it. No loop is possible.
-                continue
+            """
             if previous_head is not None and tail != previous_head:
                 # This edge results from backtracking.
                 # Pop until we get a node whose head equals the current tail.
@@ -87,49 +141,43 @@ def find_cycle(G: nx.MultiDiGraph):
                 #  (0, 1), (1, 4)
                 while True:
                     try:
-                        popped_edge = edges.pop()
-                    except IndexError:
-                        edges = []
+                        print(active_nodes)
+                        popped_edge = edges[weight].pop()
+                    except (IndexError, KeyError):
+                        edges[weight] = []
                         active_nodes = {tail}
                         break
                     else:
                         popped_head = tailhead(popped_edge)[1]
                         active_nodes.remove(popped_head)
 
-                    if edges:
-                        last_head = tailhead(edges[-1])[1]
+                    if edges[weight]:
+                        last_head = tailhead(edges[weight][-1])[1]
                         if tail == last_head:
                             break
-            edges.append(edge)
+
+            edges.get(weight).append(edge)
 
             if head in active_nodes:
                 # We have a loop!
-                cycle.extend(edges)
-                final_node = head
+                cycles[weight].extend(edges[weight])
+                final_node[weight] = head
                 break
             else:
                 seen.add(head)
                 active_nodes.add(head)
                 previous_head = head
 
-        if cycle:
-            break
-        else:
-            explored[start_node].update(seen)
-
-    else:
-        assert len(cycle) == 0
-        raise Exception("No cycle found.")
+        for weight in weights:
+            if len(cycles) == sum([cycle for cycle in cycles if cycle > 0]):
+                break
+            else:
+                explored.get(weight).update(seen)
 
     # We now have a list of edges which ends on a cycle.
     # So we need to remove from the beginning edges that are not relevant.
 
-    for i, edge in enumerate(cycle):
-        tail, head = tailhead(edge)
-        if tail == final_node:
-            break
-
-    return cycle[i:]
+    return cycles
 
 
 def edge_dfs(G, source):
@@ -183,7 +231,13 @@ def edge_dfs(G, source):
                 stack.pop()
             else:
                 edgeid = (frozenset(edge[:2]), edge[2])
-                if edgeid not in visited_edges and edge[3]["weight"] == 50:
+                if edgeid not in visited_edges:
                     visited_edges.add(edgeid)
                     stack.append(edge[1])
                     yield edge
+
+
+def log_cycle_variables(**kwargs):
+    logging.debug("Cycle variables:")
+    for variable_name, value in kwargs.items():
+        logging.debug(f"---- {variable_name}: {value}")

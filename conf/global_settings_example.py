@@ -7,7 +7,11 @@ DFS_CYCLE = {
     "edge_removal": None,  # Possible values: None, "current_node", "failed_cycle_nodes"
 }
 
-ITEMS = {"min_value": 50, "max_value": 500, "value_step": 50}
+ITEMS = {
+    "min_value": 50,
+    "max_value": 500,
+    "value_step": 50,
+}
 
 TESTS = {
     "users_file_name": "users.json",
@@ -16,4 +20,15 @@ TESTS = {
     "users_to_generate": 100,
     "items_per_user": 30,
     "items_wished_per_user": 30,
+}
+
+LOGGING = {
+    "filename": "logs/debug.log",
+    "format": "%(levelname)s - %(asctime)s - %(message)s",
+    "datefmt": "%Y/%M/%d %H:%m:%S",
+}
+
+PSTATS = {
+    "filename": "logs/pstats.log",
+    "mode": "a",
 }

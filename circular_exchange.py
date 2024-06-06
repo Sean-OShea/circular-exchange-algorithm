@@ -1,5 +1,6 @@
 import cProfile
 import json
+import logging
 import pstats
 
 import networkx as nx
@@ -7,6 +8,13 @@ import pygraphviz as pgvs
 
 import conf.global_settings as env
 from cycles import find_cycle
+
+logging.basicConfig(
+    filename=env.LOGGING["filename"],
+    level=logging.DEBUG,
+    format=env.LOGGING["format"],
+    datefmt=env.LOGGING["datefmt"],
+)
 
 with cProfile.Profile() as profile:
     f_users = open(f"tests/{env.TESTS['users_file_name']}")
@@ -17,6 +25,9 @@ with cProfile.Profile() as profile:
 
     items_dict = {item["id"]: item for item in items}
     users_dict = {user["id"]: user for user in users}
+
+    logging.debug(f"Number of users loaded: {len(users_dict)}")
+    logging.debug(f"Number of items loaded: {len(items_dict)}")
 
     # we create a directed graph, the nodes will be the users and the edges
     # will be based on their wishes. The aim is to find cycles within those graphs.
@@ -37,14 +48,16 @@ with cProfile.Profile() as profile:
 
     # prepare the graph that will contain all the cycles
     G_cycles = pgvs.AGraph(directed=True)
-    total_cycles_found = 0
 
-    print(f"Cycle search start, graph size: {graph.size()}")
-    count_cycles_found = 0
     # Find a cycle in the graph
-    try:
-        while True:
-            cycle = find_cycle(graph)
+    logging.debug(f"Cycle search start. Graph size: {graph.size()}")
+    count_cycles_found = 0
+    cycles = find_cycle(graph)
+    logging.debug(f"Cycles search ends with {cycles} cycles")
+
+    logging.debug("Starting the creation of the cycles graph")
+    for cycle in cycles.values():
+        if cycle:
             count_cycles_found += 1
             graph.remove_edges_from(cycle)
             # link the last node to the first
@@ -59,21 +72,16 @@ with cProfile.Profile() as profile:
                 )
                 fromv = tov
 
-    except Exception as error:
-        print(error)
+    logging.debug(f"Cycles graph created {count_cycles_found}")
+    logging.debug(f"Cycle search end. Graph size: {graph.size()}")
 
-    total_cycles_found += count_cycles_found
-    print(f"Cycles found: {count_cycles_found}")
-
-    print(
-        f"Cycle search end, graph size: {graph.size()}, total_cycles_found: {total_cycles_found}"
-    )
     G_cycles.layout(prog="dot")
     G_cycles.draw(env.TESTS["cycles_file_name"], format="pdf")
 
     f_users.close()
     f_items.close()
 
-    results = pstats.Stats(profile)
-    results.sort_stats("tottime")
-    results.print_stats(10)
+    with open(env.PSTATS["filename"], env.PSTATS["mode"]) as stream:
+        results = pstats.Stats(profile, stream=stream)
+        results.sort_stats("tottime")
+        results.print_stats(10)
